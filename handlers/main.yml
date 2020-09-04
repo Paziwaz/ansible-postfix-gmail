@@ -1,2 +1,6 @@
 ---
 # handlers file for postfix_gmail
+- name: Restart Postfix
+  systemd:
+    state: restarted
+    name: postfix

@@ -71,8 +71,4 @@
     regexp: ^{{ item.object }}
     line: {{ item.object }} = {{ item.declaration }}
   with_items: {{ postfix_parameters }}
-
-- name: Restart Postfix
-  systemd:
-    state: restarted
-    name: postfix
+  notify: Restart Postfix
