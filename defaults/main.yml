@@ -1,2 +1,16 @@
 ---
 # defaults file for postfix_gmail
+
+postfix_type: Internet Site
+postfix_smtp: smtp.gmail.com
+postfix_port: 587
+postfix_packages:
+  - postfix
+  - libsasl2-modules
+  - mailutils
+postfix_parameters:
+  - { object: smtp_sasl_auth_enable, declaration: yes }
+  - { object: smtp_sasl_security_options, declaration: noanonymous }
+  - { object: smtp_sasl_password_maps, declaration: hash:/etc/postfix/sasl/sasl_passwd }
+  - { object: smtp_tls_security_level, declaration: encrypt }
+  - { object: smtp_tls_CAfile, declaration: /etc/ssl/certs/ca-certificates.crt }
