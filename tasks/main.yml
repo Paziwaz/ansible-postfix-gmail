@@ -1,0 +1,74 @@
+---
+# tasks file for postfix_gmail
+
+- name: Set Postfix type
+  debconf:
+    name: postfix
+    question: postfix/main_mailer_type
+    value: "{{ postfix_type }}"
+    vtype: select
+
+- name: Get hostname
+  command: hostname -f
+  when: postfix_hostname is undefined
+  register: full_hostname
+
+- name: Set Postfix hostname when it's defined
+  debconf:
+    name: postfix
+    question: postfix/mailname
+    value: "{{ postfix_hostname }}"
+    vtype: string
+  when: postfix_hostname is defined
+  register: result
+
+- name: Set Postfix hostname when it's undefined
+  debconf:
+    name: postfix
+    question: postfix/mailname
+    value: "{{ full_hostname }}"
+    vtype: string
+  when: postfix_hostname is undefined
+
+- name: Install postfix and necessary packages
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  loop: "{{ postfix_packages }}"
+
+- name: Create sasl_passwd file based on the provided variables
+  lineinfile:
+    path: /etc/postfix/sasl/sasl_passwd
+    line: "[{{ postfix_smtp }}]:{{ postfix_port }} {{ postfix_username }}:{{ postfix_password }}"
+    create: yes
+
+- name: Create the hash db file for Postfix
+  command: postmap /etc/postfix/sasl/sasl_passwd
+
+- name: Secure sasl_passwd file
+  file:
+    path: /etc/postfix/sasl/sasl_passwd
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Secure Postfix hash database
+  file:
+    path: /etc/postfix/sasl/sasl_passwd.db
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Set relayhost in main.cf
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: ^relayhost
+    line: "relayhost = [{{ postfix_smtp }}]:{{ postfix_port }}"
+
+- name: Add parameters to enable authentication
+  lineinfile:
+    path: /etc/postfix/main.cf
+    regexp: ^{{ item.object }}
+    line: "{{ item.object }} = {{ item.declaration }}"
+  with_items: "{{ postfix_parameters }}"
+  notify: Restart Postfix
