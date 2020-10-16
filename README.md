@@ -40,7 +40,7 @@ Example Playbook
 
     - hosts: servers
       roles:
-         - { role: absible-postfix-gmail, postfix_username: example@gmail.com, postfix_password: wdvaddjjkdloqpcz }
+         - { role: ansible-postfix-gmail, postfix_username: example@gmail.com, postfix_password: wdvaddjjkdloqpcz }
 
 
 License
